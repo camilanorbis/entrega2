@@ -1,15 +1,17 @@
 import express from "express"
-import ProductManager from "./managers/ProductManager.js"
-import CartManager from "./managers/CartManager.js"
+import ProductManager from "./dao/ProductManager.js"
+import CartManager from "./dao/CartManager.js"
 import productRouter from "./routes/product.route.js"
 import cartRouter from "./routes/cart.route.js"
 import rootRouter from "./routes/root.route.js"
+import sessionRouter from "./routes/session.route.js"
+import userRouter from "./routes/user.route.js"
 import { Server } from "socket.io"
 import http from "http"
 import handlebars from "express-handlebars"
-import mongoose from "mongoose"
+import { connectDB } from "./config/db.js"
 
-
+//server definition
 const app = express();
 const servidor = http.createServer(app);
 const PORT = 8080;
@@ -22,43 +24,40 @@ servidorWS.on("connection", (socket) => {
     socket.emit("respuesta", "Hola desde el servidor")
 })
 
+//server configuration
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }))
 const basePathProducts = "/api/products"
 const basePathCarts = "/api/carts"
+const basePathSessions = "/api/sessions"
+const basePathUser = "/api/user"
 
+//handlebars
 app.engine('handlebars',handlebars.engine())
 app.set('view engine','handlebars')
 app.use(express.static("public"))
 
 
 async function init() {
-    const productManager = await new ProductManager('products.json').init();
-    const cartManager = await new CartManager('carts.json').init();
+    //const productManager = await new ProductManager('products.json').init();
+    //const cartManager = await new CartManager('carts.json').init();
 
-    app.locals.productManager = productManager;
-    app.locals.cartManager = cartManager;
+    //app.locals.productManager = productManager;
+    //app.locals.cartManager = cartManager;
 
     app.use("/",rootRouter)
     app.use(basePathProducts,productRouter)
     app.use(basePathCarts,cartRouter)
+    app.use(basePathSessions,sessionRouter)
+    app.use(basePathUser,userRouter)
 
     app.locals.servidorWS = servidorWS;
 
-    mongoose.connect("mongodb://localhost:27017/demo_db")
-    .then(() => {
-        console.log(`🚀 ~ init ~ mongoose.connected`)
-        servidor.listen(PORT, () => {
-            console.log(`Serivdor iniciado en el puerto ${PORT}`)
-        })
-    })
-    .catch((error) => {
-        console.log("🚀 ~ init ~ error:", error)
+    servidor.listen(PORT, () => {
+        console.log(`Serivdor iniciado en el puerto ${PORT}`)
     })
 
-
-    /*app.listen(PORT, () => {
-        console.log(`Servidor iniciado en el puerto ${PORT}`);
-    });*/
+    connectDB("mongodb+srv://root:root@cluster0.awnmodg.mongodb.net/?appName=Cluster0","entrega_db")
 
 }
 
