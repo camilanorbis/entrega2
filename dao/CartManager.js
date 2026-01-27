@@ -11,6 +11,10 @@ export default class CartManager {
         return await CartModel.findById(id)
     }
 
+    async getCartByIdAndPopulate (id) {
+        return await CartModel.findById(id).populate("products.productId")
+    }
+
     async saveCart (cart) {
         return await cart.save();
     }

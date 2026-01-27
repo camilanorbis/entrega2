@@ -22,7 +22,7 @@ export const createCart = async (req,res) => {
 export const getCartProducts = async (req,res) => {
     try {
         const { cid } = req.params
-        const cart = await cartManager.getCartById(cid)
+        const cart = await cartManager.getCartByIdAndPopulate(cid)
 
         if (cart) {
             const response = cart.products;
