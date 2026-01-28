@@ -65,6 +65,32 @@ Elimina un producto.
 
 ---
 
+## Rutas de Usuarios — `/api/sessions`
+
+### **POST `/api/sessions/register`**
+Crea un usurio nuevo con los datos enviados en el body de la request, el body debe ser un json con la siguiente información:
+{
+  first_name,
+  last_name,
+  email,
+  password,
+  age,
+  role
+}
+Los datos requeridos para poder crear el usuario son: first_name, last_name, email y password. La edad es opcional y en caso de no indicar un rol específico para el usuario, el sistema asignará por defecto el rol "user". Además el sistema va a crear un carrito vacío y asignar el id del mismo al usuario para que luego pueda comenzar a usarlo. 
+
+### **POST `/api/sessions/login`**
+Permite a un usuario autenticarse, el mismo debe proveer email y contraseña en el siguiente formato json:
+{
+  email,
+  password
+}
+
+### **GET `/api/sessions/current`**
+En caso de haber usuario autenticado, devuelve el username (email) y rol del mismo.
+
+---
+
 ## Vistas
 
 ### **`/` (Home)**
