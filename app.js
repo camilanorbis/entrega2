@@ -49,6 +49,11 @@ async function init() {
     app.use(basePathCarts,cartRouter)
     app.use(basePathSessions,sessionRouter)
 
+    app.use((error, req, res, next) => {
+        res.status(500).json({ status: 'error', payload: error.message || 'Error interno del servidor' })
+    })
+
+
     app.locals.servidorWS = servidorWS;
 
     servidor.listen(PORT, () => {
