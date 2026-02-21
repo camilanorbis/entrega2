@@ -31,3 +31,27 @@ export const passportCurrent = (req, res, next) => {
     next();
   })(req, res, next);
 };
+
+export const authorizeRole = (...allowedRoles) => {
+  return (req,res,next) => {
+    if (!allowedRoles.includes(req.user.role)) {
+      return res.status(403).json({ status: 'error', payload: 'Usuario no autorizado'})
+    }
+    next()
+  }
+}
+
+export const authorizeCartOwner = (req,res,next) => {
+  const { cid } = req.params
+
+  if (!req.user) {
+    return res.status(401).json({ status: 'error', payload: 'No autenticado' })
+  }
+
+  if (req.user.cart.toString() !== cid) {
+    return res.status(403).json({ status: 'error', payload: 'No autorizado para este carrito' })
+  }
+
+  next()
+
+}

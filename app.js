@@ -12,6 +12,7 @@ import dotenv from "dotenv";
 import passport from "passport";
 import { passportInit } from "./config/config.passport.js";
 
+//TODO mover a config
 dotenv.config();
 
 //server definition

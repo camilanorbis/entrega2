@@ -1,13 +1,13 @@
-export const rootHandler = async (req,res) => {
+/*export const rootHandler = async (req,res) => {
     try {
-        const productManager = req.app.locals.productManager;
-        const products = JSON.parse(await productManager.getProducts());
+        const productDao = req.app.locals.productDAO;
+        const products = JSON.parse(await productDao.getProducts());
 
         res.render("home", { products });
     } catch (error) {
         res.status(500).send("Error al cargar productos");
     }    
-}
+}*/
 
 export const getRealTimeProducts = async (req,res) => {
     try {

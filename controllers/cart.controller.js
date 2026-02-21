@@ -1,13 +1,8 @@
-import CartModel from "../models/cart.model.js";
-import CartManager from "../dao/CartManager.js";
-import ProductManager from "../dao/ProductManager.js";
-
-const cartManager = new CartManager()
-const productManager = new ProductManager()
+import { cartService } from "../service/index.js";
 
 export const createCart = async (req,res) => {
     try {
-        const response = await cartManager.createCart()
+        const response = await cartService.createCart()
 
         if (!response) {
             return res.status(400).json({ status: 'error', payload: 'No fue posible crear el carrito' })
@@ -22,7 +17,7 @@ export const createCart = async (req,res) => {
 export const getCartProducts = async (req,res) => {
     try {
         const { cid } = req.params
-        const cart = await cartManager.getCartByIdAndPopulate(cid)
+        const cart = await cartService.getCartWithProducts(cid)
 
         if (cart) {
             const response = cart.products;
@@ -41,27 +36,14 @@ export const addProductToCart = async (req,res) => {
         const { pid } = req.params
         const { cid } = req.params 
 
-        const cart = await cartManager.getCartById(cid)
-        const product = await productManager.getProductById(pid)
+        const updatedCart = await cartService.addProduct(cid,pid)
 
-        if(!cart) {
-            return res.status(404).json({ status: 'error', payload: `El carrito con id ${cid} no existe` })
-        } 
-        console.log(product)
-        if(!product) {
-            return res.status(404).json({ status: 'error', payload: `El producto con id ${pid} no existe` })
-        }
+        if (!updatedCart)
+            return res.status(400).json({ status: 'error', payload: 'No fue posible agregar el producto al carrito.'})
+        if (updatedCart.error)
+            return res.status(404).json({ status: 'error', payload: updatedCart.error })
         
-        const productInCart = cart.products.find(product => product.productId === pid);
-
-        if (productInCart) {
-            productInCart.quantity += 1;
-        } else {
-            cart.products.push({ productId: pid,quantity: 1 });
-        }
-
-        const updated = await cartManager.saveCart(cart)
-        return res.status(200).json({ status: 'success', payload: updated });
+        return res.status(200).json({ status: 'success', payload: updatedCart });
 
     } catch (error) {
         return res.status(500).json({ status: 'error', payload: `No fue posible agregar el producto al carrito. Detalle: ${error}` })
@@ -71,16 +53,15 @@ export const addProductToCart = async (req,res) => {
 export const deleteProductFromCart = async (req,res) => {
     try {
         const { cid, pid } = req.params 
-        const cart = await cartManager.getCartById(cid)
+        const updatedCart = await cartService.deleteProduct(cid,pid)
 
-        if (!cart) {
-            return res.status(404).json({ status: 'error', payload: `El carrito con id ${cid} no existe` })
-        }
+        if (!updatedCart)
+            return res.status(400).json({ status: 'error', payload: 'No fue posible eliminar el producto del carrito.'})
+        if (updatedCart.error)
+            return res.status(404).json({ status: 'error', payload: updatedCart.error })
 
-        await cartManager.deleteProductFromCart(pid,cid)
-        const updatedCart = await cartManager.getCartById(cid)
         return res.status(200).json({ status: 'success', payload: updatedCart })
-
+        
     } catch (error) {
         return res.status(500).json({ status: 'error', payload: `No fue posible eliminar el producto del carrito. Detalle: ${error}` })
     }
@@ -91,17 +72,14 @@ export const updateCartProducts = async (req,res) => {
         const { cid } = req.params;
         const newProducts = req.body; 
 
-        if (!Array.isArray(newProducts)) {
-            return res.status(400).json({ status: 'error', payload: 'El body debe ser un arreglo de productos' });
-        }
+        const response = await cartService.updateAllProducts(cid, newProducts)
+        console.log(response)
+        if (!response)
+            return res.status(400).json({ status: 'error', payload: 'No fue posible actualizar el carrito.'})
+        if (response.error)
+            return res.status(404).json({ status: 'error', payload: response.error })
 
-        const cart = await cartManager.updateCartProducts(cid,newProducts)
-
-        if (!cart) {
-            return res.status(404).json({ status: 'error', payload: `El carrito con id ${cid} no existe` });
-        }
-
-        return res.status(200).json({ status: 'success', payload: cart });
+        return res.status(200).json({ status: 'success', payload: response })
 
     } catch (error) {
         return res.status(500).json({ status: 'error', payload: `No fue posible actualizar los productos del carrito. Detalle: ${error}` });
@@ -113,19 +91,14 @@ export const updateProductQuantity = async (req,res) => {
         const { cid, pid } = req.params
         const { quantity } = req.body
 
-        const cart = await cartManager.getCartById(cid)
-        if (!cart) {
-            return res.status(404).json({ status: 'error', payload: `El carrito con id ${cid} no existe` })
-        }
-        
-        const productInCart = cart.products.find(product => product.productId === pid);
-        if (productInCart) {
-            productInCart.quantity = quantity
-            await cartManager.saveCart(cart)
-            return res.status(200).json({ status: 'success', payload: cart })
-        } else {
-            return res.status(404).json({ status: 'error', payload: `El producto con id ${pid} no esta en el carrito` })
-        }
+        const updatedCart = await cartService.updateProductOnCart(cid,pid,quantity)
+        if (!updatedCart)
+            return res.status(400).json({ status: 'error', payload: 'No fue posible actualizar el carrito.'})
+        if (updatedCart.error)
+            return res.status(404).json({ status: 'error', payload: updatedCart.error })
+
+        return res.status(200).json({ status: 'success', payload: updatedCart })
+
     } catch (error) {
         return res.status(500).json({ status: 'error', payload: `No fue posible actualizar el carrito. Detalle: ${error}` })
     }
@@ -135,13 +108,14 @@ export const updateProductQuantity = async (req,res) => {
 export const deleteProductsFromCart = async (req,res) => {
     try {
         const { cid } = req.params
-        const cart = await cartManager.updateCartProducts(cid,[])
+        const updatedCart = await cartService.deleteAllProducts(cid)
+        console.log(updatedCart)
+        if (!updatedCart)
+            return res.status(400).json({ status: 'error', payload: 'No fue posible actualizar el carrito.'})
+        if (updatedCart.error)
+            return res.status(404).json({ status: 'error', payload: updatedCart.error })
 
-        if (!cart) {
-            return res.status(404).json({ status: 'error', payload: `El carrito con id ${cid} no existe` })
-        } 
-
-        return res.status(200).json({ status: 'success', payload: cart })
+        return res.status(200).json({ status: 'success', payload: updatedCart })
 
     } catch (error) {
         return res.status(500).json({ status: 'error', payload: `No fue posible actualizar el carrito. Detalle: ${error}` })
