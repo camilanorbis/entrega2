@@ -29,7 +29,7 @@ Crea un carrito nuevo.
 Obtiene los productos de un carrito según su ID.
 
 ### **POST `/api/carts/:cid/product/:pid`**
-Agrega un producto al carrito indicado.
+Agrega un producto al carrito indicado, siempre y cuando el usuario al que pertenece el carrito sea el que esta logueado.
 
 ### **DELETE `/api/carts/:cid/product/:pid`**
 Elimina el producto del carrito por completo (aunque haya mas de uno)
@@ -43,6 +43,9 @@ Se deben recibir en el siguiente formato [{"productId": "productId", "quantity":
 
 ### **PUT `/api/carts/:cid/product/:pid`**
 Recibe desde el body { "quantity": x } y actualiza la cantidad de dicho producto en el carrito
+
+### **POST `/api/carts/:cid/buy`**
+Realiza la compra de un carrito, siempre y cuando el usuario a quien pertenece el carrito este logueado y todos los productos del carrito esten disponibles en las cantidades indicadas. Devuelve el ticket de compra. 
 
 ---
 
@@ -61,13 +64,13 @@ La respuesta de este endpoint ahora devuelve todos los datos de paginación soli
 Devuelve un producto por su ID.
 
 ### **POST `/api/products/`**
-Agrega un producto nuevo.
+Crea un producto nuevo, siempre y cuando el usuario logueado sea un administrador.
 
 ### **PUT `/api/products/:pid`**
-Modifica un producto existente.
+Modifica un producto existente, siempre y cuando el usuario logueado sea un administrador.
 
 ### **DELETE `/api/products/:pid`**
-Elimina un producto.
+Elimina un producto, siempre y cuando el usuario logueado sea un administrador.
 
 ---
 
