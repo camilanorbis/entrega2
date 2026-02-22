@@ -120,18 +120,16 @@ export default class CartService {
             return ({ 'error': `El carrito con id ${cid} no existe` })
         }
 
-        //chequeo que cada producto tenga el stock necesario
-        //TODO: si algun producto no tiene stock suficiente generar ticket por los que si lo tengan
+        //chequeo que cada producto tenga el stock necesario, si no lo tiene lo saco del carrito
         for (const item of cart.products) {
             const product = item.productId
             
             if (product.stock < item.quantity) {
-                result = ({ 'error': `Stock insuficiente para ${product.title}`})
-                return result
+                cart.products = cart.products.filter(p => p !== item)
             }
         }
 
-        //si todos los productos tienen stock necesario, para cada uno resto el stock que se agrego al carrito
+        //resto el stock de los productos del carrito
         for (const item of cart.products) {
             await this.productDao.modifyProduct(item.productId._id, { $inc: { stock: -item.quantity }})
         }
@@ -164,10 +162,10 @@ export default class CartService {
                                                         ]
                                                     )
 
-        return new TicketDTO(ticketDoc)
+        //vaciar carrito
+        await this.cartDao.updateCart({ _id: cid }, { $set: { products: [] }})
 
-        //vaciar carrito. 
-        
+        return new TicketDTO(ticketDoc)
     }
 
 }

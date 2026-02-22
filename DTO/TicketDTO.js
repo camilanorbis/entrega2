@@ -12,7 +12,7 @@ export default class TicketDTO {
         }
 
         this.date = this.formatDate(ticket.date)
-        this.totalAmount = ticket.totalAmount
+        this.totalAmount = '$' + ticket.totalAmount
     }
 
     formatDate(date) {
