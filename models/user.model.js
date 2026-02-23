@@ -33,7 +33,14 @@ export const userSchema = new Schema ({
     role: {
         type: String,
         default: "user"
+    },
+    resetToken: {
+        type: String
+    },
+    resetTokenExpires: {
+        type: Date
     }
+
 })
 
 

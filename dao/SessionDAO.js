@@ -10,4 +10,8 @@ export default class SessionDAO {
         return await UserModel.findOne(filter).lean()
     }
 
+    async updateUser (filter,update) {
+        return await UserModel.updateOne(filter,update)
+    }
+
 }
